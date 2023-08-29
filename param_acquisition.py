@@ -4,14 +4,15 @@ import pandas as pd
 import netCDF4 as nc
 from netCDF4 import Dataset
 import numpy as np
+import os
 
 
 
 
-def xml_lon_lat_time_date(xml_file):
+def xml_lon_lat_date_time(xml_file):
 
     '''
-    xml_lon_lat_time_date : Parses longitude and latitude, timestamp and date values
+    xml_lon_lat_date_time : Parses longitude and latitude, timestamp and date values
                             from .xml files that accompany IceSat-2 survery campaign
                             imagery.
                             Coordinate is roughly the geometric center of the image.
@@ -48,7 +49,7 @@ def csv_overlap(csv_file):
         Will add a function to read the auto-generated columns, but np.char.replace() is being fussy.
 
     :csv_file: path to .csv file.
-    :return: cryosat_start_time, cryosat_end_time, icesat_start_time, icesat_end_time,()
+    :return: cryosat_start_time, cryosat_end_time, icesat_start_time, icesat_end_time,(yyyymmddhhmmss.ssssss)
              img_coords(ndarray)
 
     '''
@@ -86,6 +87,8 @@ def csv_overlap(csv_file):
     cryo_end_time   = table['cryo_end_time'].to_numpy()
     ice_start_time  = table['ice_start_time'].to_numpy()
     ice_end_time    = table['ice_end_time'].to_numpy()
+    #print(cryo_start_time)
+    print(cryo_start_time[2])
     bl_lat = table['bl_lat'].to_numpy()
     bl_lon = table['bl_lon'].to_numpy()
     br_lat = table['br_lat'].to_numpy()
@@ -94,6 +97,8 @@ def csv_overlap(csv_file):
     tl_lon = table['tl_lon'].to_numpy()
     tr_lat = table['tr_lat'].to_numpy()
     tr_lon = table['tr_lon'].to_numpy()
+    #print(tr_lon)
+    #print(type(tr_lon[2]))
 
     img_coords = np.asarray([bl_lat,bl_lon, br_lat,br_lon, tl_lat,tl_lon, tr_lat,tr_lon])
     #print(img_coords)
@@ -143,17 +148,41 @@ def netcdf_cryosat_lon_lat(nc_file):
     return 
 
 
-#xml_lon_lat_time_date(r'D:\n5eil01u.ecs.nsidc.org\ICESAT2_PO\IS2OLVIS1BCV.001\2022.07.11\IS2OLVIS1BCV_CAM038MP_GL2022_0711_R2212_12-26-15.138.tif.xml')
+#xml_lon_lat_date_time(r'D:\n5eil01u.ecs.nsidc.org\ICESAT2_PO\IS2OLVIS1BCV.001\2022.07.11\IS2OLVIS1BCV_CAM038MP_GL2022_0711_R2212_12-26-15.138.tif.xml')
 #netcdf_cryosat_lon_lat(r'D:\7-9_7-24\SIR_SAR_L2_E_4b094afc-4237-11ee-8f72-a966ea06ad80\CS_OFFL_SIR_SAR_2__20220711T010718_20220711T011508_E001.nc')
-csv_overlap(r'D:\7-9_7-24\SIR_SAR_L2_E_ATL07_495fbf58-4237-11ee-81ab-a966ea06ad80.csv')
+#csv_overlap(r'D:\7-9_7-24\SIR_SAR_L2_E_ATL07_495fbf58-4237-11ee-81ab-a966ea06ad80.csv')
 #hdf5_icesat_lon_lat(r'D:\7-9_7-24\ATL07_4bb5055b-4237-11ee-9200-a966ea06ad80\ATL07-01_20220711003556_02921601_005_01.h5')
 
 
 
 
-#for each image in usb drive:
-    
-        #if img_date_time belongs to [cryosat_start_time, cryosat_end_time] +/- 12 hours or [icesat_start_time, icesat_end_time] +/- 12 hours:
-            #if (img_lat belongs to [bl lat, br lat] && [tl lat, tr lat] +/- 0.03) && (img_long belongs to [bl lon, br lon] && [tl lon, tr lon] +/- 0.003):
 
-                        #save img.xml name and csv segment_id in dictionary
+IMG_DIRECTORY = r'D:\n5eil01u.ecs.nsidc.org\ICESAT2_PO\IS2OLVIS1BCV.001\2022.07.11/'
+CSV_FILE = r'D:\7-9_7-24\SIR_SAR_L2_E_ATL07_495fbf58-4237-11ee-81ab-a966ea06ad80.csv'
+pairs = {}
+
+
+def geolocate_xml_csv(csv_file, IMG_DIRECTORY):
+
+    #chdir()
+
+    cryo_start_time, cryo_end_time, ice_start_time, ice_end_time, img_coords = csv_overlap(csv_file)
+
+    for xml_file in IMG_DIRECTORY:
+        #print(xml_file)
+        for i in range(0,11999):                # i = csv row index
+            if xml_file.endswith('.xml'):
+                img_lon, img_lat, img_date_time = xml_lon_lat_date_time(xml_file)
+
+                # to extend range, cant just +/- 12hrs of military time (00:00:01 - 12 hours = ?)
+                if img_date_time in range(cryo_start_time[i], cryo_end_time[i]) | img_date_time in range(ice_start_time[i], ice_end_time[i]):
+                    #bl_lat,bl_lon, br_lat,br_lon, tl_lat,tl_lon, tr_lat,tr_lon
+                    if (img_lat in range(img_coords[0][i] - 0.03, img_coords[2][i] + 0.03) & img_lat in range(img_coords[4][i] - 0.03, img_coords[6][i] + 0.003)\
+                     | img_lon in range(img_coords[1][i] - 0.03, img_coords[3][i] + 0.03) & img_lat in range(img_coords[5][i] - 0.03, img_coords[7][i] + 0.003)):
+                        
+                        pairs[xml_file] = i
+
+    print(pairs)
+
+geolocate_xml_csv(CSV_FILE, IMG_DIRECTORY)
+
