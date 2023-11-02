@@ -14,7 +14,6 @@ HOME_DIR = r'D:\lvis images + altimetry\eo imagery\2022.07.11-2022.07.26'
 
 for txtxmlfile in glob.glob(r'D:\lvis images + altimetry\altimetry\*.TXT.xml'):
     txtfile = txtxmlfile[:-7]+'txt'
-    print(txtxmlfile)
     index = txtxmlfile[-14:-8]
     day   = txtxmlfile[-23:-21]
     h5file = '*.'+index+'.h5'
@@ -34,11 +33,11 @@ for txtxmlfile in glob.glob(r'D:\lvis images + altimetry\altimetry\*.TXT.xml'):
     else: print('Error: invalid TXT file name.')
 
     row = 0
-    img_names = []
+    #img_names = []
     img_points = np.zeros((2006,2), dtype=float)
     for imgxmlfile in glob.glob(folder+'\*CAM150MP*.xml'):
-        imgfile = imgxmlfile[:-4]
-        img_names.append(imgfile)
+        #imgfile = imgxmlfile[:-4]
+        #img_names.append(imgfile)
         tree = et.parse(imgxmlfile)
         root = tree.getroot()
         lat = float(root[2][8][0][0][1].text)
@@ -47,9 +46,10 @@ for txtxmlfile in glob.glob(r'D:\lvis images + altimetry\altimetry\*.TXT.xml'):
         img_points[row][1] = lat
         #print(lon, lat)
         row += 1
+    #print(img_points)
     boolarr = check_altimetry_track(txtxmlfile, img_points)
-    print(boolarr.sum())
-    #img_index = np.where(boolarr)[0].astype(int)
+    print('BOOLARR: '+str(boolarr.sum()))
+    #print(boolarr.nonzero())
     # for i in range(len(img_index)):
     #     print(img_names[img_index[i]])
     #print(i for i in boolarr.sum())

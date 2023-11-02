@@ -14,27 +14,27 @@ def check_altimetry_track(txtxmlfile, img_points):
     :txtxmlfile: (str) path to .TXT.xml file.
     :return:     (bool) True if image is in altimetry segment bounds.
     '''
-    inside_arr = np.empty((2006), dtype=bool)
+    inside_arr = np.zeros((2006), dtype=bool)
     tree = et.parse(txtxmlfile)
     root = tree.getroot()
     bs = root.findall('.//Boundary')
+    print(bs)
     for b in bs:
-        print(b)
         polygon_points = []
         p = b.iter('Point')
         for i in range(sum(1 for _ in p)):
             lon = float(b[i][0].text)
             lat = float(b[i][1].text)
-            #print(lon,lat)
             polygon_points.append((lon,lat))
-        #print(polygon_points)
-        #matplotlib fill()
+        print(polygon_points)
         path = pltpath.Path(polygon_points)
+        print('LVISF2: '+str(path.contains_points(img_points).sum()))
+        inside_arr = np.logical_or(inside_arr, path.contains_points(img_points, radius=0))
+    return inside_arr
+
         # contain_arr = path.contains_points(img_points)
         # inside_arr = np.logical_or(inside_arr, contain_arr)
-        inside_arr = np.append(inside_arr, path.contains_points(img_points), axis=0)
         #inside_arr += path.contains_points(img_points)
-    return inside_arr
 '''
     tree = et.parse(txtxmlfile)
     root = tree.getroot()
