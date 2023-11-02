@@ -1,5 +1,7 @@
 import xml.etree.ElementTree as et
 import matplotlib.pyplot as plt
+import numpy as np
+import glob
 
 def get_img_time(xmlfile):
     '''
@@ -19,9 +21,9 @@ def get_img_time(xmlfile):
     return utc
 
 
-def get_img_lon_lat(xmlfile):
+def get_img_lon_lat(folder):
     '''
-    get_img_lon_lat : Parses longitude and latitude of aerial image.
+    get_img_lon_lat : Parses longitude and latitude of aerial images.
 
                          Coordinate is roughly the geometric center of the image.
                          (IceBridge Dataset: IS2OLVIS1BCV (https://nsidc.org/data/is2olvis1bcv/versions/1))
@@ -29,8 +31,14 @@ def get_img_lon_lat(xmlfile):
     :xml_file: path to .xml file.
     :return: lat (float), lon (float).
     '''
-    tree = et.parse(xmlfile)
-    root = tree.getroot()
-    lat = float(root[2][8][0][0][0][0][1].text)
-    lon = float(root[2][8][0][0][0][0][0].text)
-    return lat, lon
+    row = 0
+    img_points = np.zeros((2006,2), dtype=float)
+    for xmlfile in glob.glob(folder+'\*CAM150MP*.xml'):
+        row += 1
+        tree = et.parse(xmlfile)
+        root = tree.getroot()
+        lat = float(root[2][8][0][0][1].text)
+        lon = float(root[2][8][0][0][0].text)
+        img_points[row][0] = lat
+        img_points[row][1] = lon
+    return img_points

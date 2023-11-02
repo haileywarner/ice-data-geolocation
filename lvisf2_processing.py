@@ -1,31 +1,54 @@
 import os
 import xml.etree.ElementTree as et
 import matplotlib.pyplot as plt
-from shapely.geometry import Point
-from shapely.geometry.polygon import Polygon
+import matplotlib.path as pltpath
+import numpy as np
+# from shapely.geometry import Point
+# from shapely.geometry.polygon import Polygon
 
-def plot_altimetry_track(txtxmlfile):
+def check_altimetry_track(txtxmlfile, img_points):
     '''
-    plot_altimetry_track : 
+    check_altimetry_track : 
 
-    :txtxmlfile: path to .TXT.xml file.
-    :return:
+    :img_points: (2006x2 ndarray) lon, lat centers coordinate of images.
+    :txtxmlfile: (str) path to .TXT.xml file.
+    :return:     (bool) True if image is in altimetry segment bounds.
     '''
-
-    polygon_points = []
+    inside_arr = np.empty((2006), dtype=bool)
+    tree = et.parse(txtxmlfile)
+    root = tree.getroot()
+    bs = root.findall('.//Boundary')
+    for b in bs:
+        print(b)
+        polygon_points = []
+        p = b.iter('Point')
+        for i in range(sum(1 for _ in p)):
+            lon = float(b[i][0].text)
+            lat = float(b[i][1].text)
+            #print(lon,lat)
+            polygon_points.append((lon,lat))
+        #print(polygon_points)
+        #matplotlib fill()
+        path = pltpath.Path(polygon_points)
+        # contain_arr = path.contains_points(img_points)
+        # inside_arr = np.logical_or(inside_arr, contain_arr)
+        inside_arr = np.append(inside_arr, path.contains_points(img_points), axis=0)
+        #inside_arr += path.contains_points(img_points)
+    return inside_arr
+'''
     tree = et.parse(txtxmlfile)
     root = tree.getroot()
     p = root.iter('Point')
-    #print(sum(1 for _ in p))
-    for i in range(0,sum(1 for _ in p)-1):
+    for i in range(sum(1 for _ in p)):
         lon = float(root[2][8][0][0][0][i][0].text)
         lat = float(root[2][8][0][0][0][i][1].text)
+        #print(lon,lat)
         polygon_points.append((lon,lat))
-    print(polygon_points)
-        #matplotlib fill()
-
-    return
-
+    #print(polygon_points)
+    path = pltpath.Path(polygon_points)
+    inside = path.contains_points(img_points)
+    return inside
+'''
 
 def get_txtxml_time(xmlfile):
     '''
