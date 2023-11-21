@@ -1,7 +1,4 @@
 import xml.etree.ElementTree as et
-import matplotlib.pyplot as plt
-import numpy as np
-import glob
 
 def get_img_time(xmlfile):
     '''
@@ -21,7 +18,7 @@ def get_img_time(xmlfile):
     return utc
 
 
-def get_img_lon_lat(folder):
+def get_img_lon_lat(xmlfile):
     '''
     get_img_lon_lat : Parses longitude and latitude of aerial images.
 
@@ -31,14 +28,11 @@ def get_img_lon_lat(folder):
     :xml_file: path to .xml file.
     :return: lat (float), lon (float).
     '''
-    row = 0
-    img_points = np.zeros((2006,2), dtype=float)
-    for xmlfile in glob.glob(folder+'\*CAM150MP*.xml'):
-        row += 1
-        tree = et.parse(xmlfile)
-        root = tree.getroot()
-        lat = float(root[2][8][0][0][1].text)
-        lon = float(root[2][8][0][0][0].text)
-        img_points[row][0] = lat
-        img_points[row][1] = lon
-    return img_points
+    tree = et.parse(xmlfile)
+    root = tree.getroot()
+    lat = float(root[2][8][0][0][1].text)
+    if lat < 0: lat += 360.0
+    lon = float(root[2][8][0][0][0].text)
+    if lon < 0: lon += 360.0
+    return (lon, lat)
+

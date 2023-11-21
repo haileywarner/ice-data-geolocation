@@ -113,6 +113,8 @@ def makeLMfilters():
 F = makeLMfilters()
 print(F.shape)
 
+######################################################
+
 # ADDED: plot filters
 fig, ax = plt.subplots(4,F.shape[2]//4)
 for i in range(0,F.shape[2]):

@@ -1,14 +1,34 @@
 import os
 import xml.etree.ElementTree as et
-import matplotlib.pyplot as plt
 import matplotlib.path as pltpath
 import numpy as np
-# from shapely.geometry import Point
-# from shapely.geometry.polygon import Polygon
+
+def get_polygon(txtxmlfile):
+    '''
+    '''
+    #polygons = []
+    tree = et.parse(txtxmlfile)
+    root = tree.getroot()
+    bs = root.findall('.//Boundary')
+    for b in bs:
+        lon_list = []
+        lat_list = []
+        p = b.iter('Point')
+        for i in range(sum(1 for _ in p)):
+            lon = float(b[i][0].text)
+            lat = float(b[i][1].text)
+            lon_list.append(lon)
+            lat_list.append(lat)
+
+    return lon_list, lat_list
+
+
 
 def check_altimetry_track(txtxmlfile, img_points):
     '''
-    check_altimetry_track : 
+    check_altimetry_track : This function reads in each LVISF2 altimetry XML file, generates a polygon
+    with (lon, lat) coordinates, then compares an array with the center coordinates of aerial images.
+    If the image center is within the bounds of the polygon, add it to an inlier array.
 
     :img_points: (2006x2 ndarray) lon, lat centers coordinate of images.
     :txtxmlfile: (str) path to .TXT.xml file.
@@ -31,10 +51,6 @@ def check_altimetry_track(txtxmlfile, img_points):
         print('LVISF2: '+str(path.contains_points(img_points).sum()))
         inside_arr = np.logical_or(inside_arr, path.contains_points(img_points, radius=0))
     return inside_arr
-
-        # contain_arr = path.contains_points(img_points)
-        # inside_arr = np.logical_or(inside_arr, contain_arr)
-        #inside_arr += path.contains_points(img_points)
 '''
     tree = et.parse(txtxmlfile)
     root = tree.getroot()
@@ -65,8 +81,8 @@ def get_txtxml_time(xmlfile):
     root = tree.getroot()
     start_military = str(root[2][7][2].text).replace(':','')
     end_military   = str(root[2][7][0].text).replace(':','')
-    t0 = float(start_military[0:2])*3600 + float(start_military[2:4])*60 + float(start_military[4:6])
-    tn = float(end_military[0:2])*3600 + float(end_military[2:4])*60 + float(end_military[4:6])
+    t0 = int(start_military[0:2])*3600 + int(start_military[2:4])*60 + int(start_military[4:6])
+    tn = int(end_military[0:2])*3600 + int(end_military[2:4])*60 + int(end_military[4:6])
     return t0, tn
 
 
