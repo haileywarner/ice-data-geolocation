@@ -24,8 +24,8 @@ def partition_img(txtfile, folder, n, thresh):
     R = 6371. # Earth radius (km)
 
     # Make folder to save image patches to.
-    if not os.path.exists(folder+'/patches'):
-        os.makedirs(folder+'/patches')
+    if not os.path.exists(folder+'/patches61'):
+        os.makedirs(folder+'/patches61')
 
     # Read altimetry txt file into ndarray (columns = TIME, LON_MAXAMP, LAT_MAXAMP, Z_MAXAMP).
     altimetry_coords = []
@@ -79,25 +79,20 @@ def partition_img(txtfile, folder, n, thresh):
         alt_pixel_y = int(y/2 + dy)
 
         if 30<alt_pixel_x and alt_pixel_x<x-31 and 30<alt_pixel_y and alt_pixel_y<y-31:
-            image_patch1 = whole_image[alt_pixel_x-30:alt_pixel_x+31, alt_pixel_y-30:alt_pixel_y+31]
+            image_patch = whole_image[alt_pixel_x-30:alt_pixel_x+31, alt_pixel_y-30:alt_pixel_y+31]
         else:
-            image_patch1 = np.zeros((61,61), dtype=int)
-
-        if 256<alt_pixel_x and alt_pixel_x<x-257 and 256<alt_pixel_y and alt_pixel_y<y-257:
-            image_patch1 = whole_image[alt_pixel_x-256:alt_pixel_x+257, alt_pixel_y-256:alt_pixel_y+257]
-        else:
-            image_patch1 = np.zeros((61,61), dtype=int)
+            image_patch = np.zeros((61,61), dtype=int)
 
         print(n)
         n+=1
 
         # Eliminate pairs with >thresh black pixels in imagery square (image is out of bounds).
-        if np.count_nonzero(image_patch1) < 61**2 - thresh:
+        if np.count_nonzero(image_patch) < 61**2 - thresh:
             continue
 
         # Save each patch as PNG.
-        im = Image.fromarray(image_patch1)
-        im.save(folder+'/patches/patch'+str(n-1)+'.png')
+        im = Image.fromarray(image_patch)
+        im.save(folder+'/patches61/patch'+str(n-1)+'.png')
         
         # Save patch metadata to TXT file.
         sorted_alt_row.append(str(inlier[2]))
@@ -108,8 +103,7 @@ def partition_img(txtfile, folder, n, thresh):
     meta_dict = {'row_in_altimetry_file':sorted_alt_row, 'altimetry_coordinate':sorted_alt_coord,\
                  'image_coordinate':sorted_img_coord, 'patch_name':sorted_img_name, 'img_file_name':sorted_img_file}
     df = pd.DataFrame(data=meta_dict)
-    df.to_csv(folder+'/metadata.csv')
-
+    df.to_csv(folder+'/metadata61.csv')
 
 dir = "E:\spatially_sorted_lvisf2_is2olvis1bcv"
 for folder in os.listdir(dir):

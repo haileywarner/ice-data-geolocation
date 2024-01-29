@@ -15,7 +15,6 @@ import cv2
 im = cv2.imread('aerial.png', 0)
 print(im.shape)
 
-
 def makeRFSfilters(radius=24, sigmas=[1, 2, 4], n_orientations=6):
     """ Generates filters for RFS filterbank.
     Parameters
