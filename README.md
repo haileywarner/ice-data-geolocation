@@ -1,2 +1,2 @@
 # ice-data-geolocation
-The function of this code is to systematically filter and sort coincident sea ice imagery and altimetry from the LVIS Summer 2022 IceSat Calibration Campaign.
+The function of this code is to systematically filter and sort coincident sea ice imagery and altimetry from the LVIS Summer 2022 IceSat Calibration Campaign. Additional software is provided to compute variance pooling maps, grey-level co-occurrence matrices, textons, and associated meta-data from sample image patches.

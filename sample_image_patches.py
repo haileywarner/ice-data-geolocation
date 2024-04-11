@@ -14,7 +14,7 @@ def partition_img(txtfile, folder, n, thresh):
     '''
     partition_img: For each image in folder, finds pixel locations of altimetry measurments and extracts an nxn patch around each. Discards boundary image samples which contain >thresh black border pixels.
 
-    :tiffile: path to .tif file.
+    :txtfile: path to .txt file.
     :n: side length of partition samples (in pixels)
     :thresh: threshold at which image samples get discarded. If sample contains more than m black pixels, discard it. Otherwise store and return the sample.
     :return: list of (n,n) ndarrays containing image sample pixel intensities.
@@ -48,51 +48,59 @@ def partition_img(txtfile, folder, n, thresh):
     for image_center in imagery_coords:
         image_name = imagery_names[imagery_coords.index(image_center)]
         d,i = kdtree.query([image_center], k=1) #distance_upper_bound=0.13592104642) # ~1.8km
+        print(i)
         inliers.append((image_name, image_center, i[0], altimetry_coords[i[0]]))
 
     # Subsample image to 61-by-61 pixel square around altimetry center. (This will produce 1:1 correspondence between altimetry measurements and image squares)
     n=0
-    sorted_alt_row = []
+    sorted_alt_row   = []
     sorted_alt_coord = []
-    sorted_img_name = []
+    sorted_img_name  = []
     sorted_img_coord = []
-    sorted_img_file = []
+    sorted_img_file  = []
     for inlier in inliers:
         tiffile = inlier[0][:-7]+'tif'
         whole_image = cv2.imread(tiffile, cv2.IMREAD_GRAYSCALE)
         x, y = whole_image.shape
 
         # WGS84 --> km
-        delta_lon = inlier[3][0] - inlier[1][0]
-        delta_lat = inlier[3][1] - inlier[1][1]
-        mean_lat = (inlier[3][1] + inlier[1][1])/2
+        # delta_lon = inlier[3][0] - inlier[1][0]
+        # delta_lat = inlier[3][1] - inlier[1][1]
+        # mean_lat = (inlier[3][1] + inlier[1][1])/2
         
         # Haversine Formula: https://www.movable-type.co.uk/scripts/latlong.html
-        dx_km = R*np.pi*delta_lat/180.
-        dy_km = (R*np.pi*delta_lon/180.)*np.cos(mean_lat)
+        # dx_km = R*np.pi*delta_lat/180.
+        # dy_km = (R*np.pi*delta_lon/180.)*np.cos(mean_lat)
+
+        # dx_km = R*np.arccos(delta_lat/R^2)
+        # dy_km = R*np.arccos(delta_lon/R^2)
 
         # km --> pixels
-        dx = dx_km/SPATIAL_RES
-        dy = dy_km/SPATIAL_RES
+        # dx = dx_km/SPATIAL_RES
+        # dy = dy_km/SPATIAL_RES
 
-        alt_pixel_x = int(x/2 + dx)
-        alt_pixel_y = int(y/2 + dy)
+        # alt_pixel_x = int(x/2 + dx)
+        # alt_pixel_y = int(y/2 + dy)
 
-        if 30<alt_pixel_x and alt_pixel_x<x-31 and 30<alt_pixel_y and alt_pixel_y<y-31:
-            image_patch = whole_image[alt_pixel_x-30:alt_pixel_x+31, alt_pixel_y-30:alt_pixel_y+31]
-        else:
-            image_patch = np.zeros((61,61), dtype=int)
+        # if 30<alt_pixel_x and alt_pixel_x<x-31 and 30<alt_pixel_y and alt_pixel_y<y-31:
+        #     image_patch = whole_image[alt_pixel_x-30:alt_pixel_x+31, alt_pixel_y-30:alt_pixel_y+31]
+        # else:
+        #     image_patch = np.zeros((61,61), dtype=int)
+
+        # Extract patch around image center.
+        image_patch = whole_image[x//2-30:x//2+31, y//2-30:y//2+31]
+
+        # Eliminate pairs with >thresh black pixels in imagery square (image is out of bounds).
+        # if np.count_nonzero(image_patch) < 61**2 - thresh:
+        #     continue
 
         print(n)
         n+=1
 
-        # Eliminate pairs with >thresh black pixels in imagery square (image is out of bounds).
-        if np.count_nonzero(image_patch) < 61**2 - thresh:
-            continue
-
         # Save each patch as PNG.
         im = Image.fromarray(image_patch)
         im.save(folder+'/patches61/patch'+str(n-1)+'.png')
+        print(folder+'/patches61/patch'+str(n-1)+'.png')
         
         # Save patch metadata to TXT file.
         sorted_alt_row.append(str(inlier[2]))
@@ -106,10 +114,12 @@ def partition_img(txtfile, folder, n, thresh):
     df.to_csv(folder+'/metadata61.csv')
 
 dir = "E:\spatially_sorted_lvisf2_is2olvis1bcv"
-for folder in os.listdir(dir):
+unprocessed_folders = ['57085_to_57180', '58037_to_58132', '59554_to_59653', '59484_to_59617']
+
+# for folder in os.listdir(dir):
+for folder in unprocessed_folders:
     folder = os.path.join(dir,folder)
     print(folder)
     for f in glob.glob(folder+'\*.txt'):
         print('next file')
         partition_img(f, folder, 61, 10)
-    

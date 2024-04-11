@@ -10,7 +10,6 @@ Reference: http://www.robots.ox.ac.uk/~vgg/research/texclass/filters.html
 '''
 
 import numpy as np
-import cv2
 import matplotlib.pyplot as plt
 
 def gaussian1d(sigma, mean, x, ord):
@@ -105,17 +104,13 @@ def makeLMfilters():
     for i in range(len(scales)):
         F[:,:,count] = log2d(sup, 3*scales[i])
         count = count + 1
-
-
+        
     return F
 
 # Call the make filter function
 F = makeLMfilters()
-print(F.shape)
 
-######################################################
-
-# ADDED: plot filters
+# Plot filters
 fig, ax = plt.subplots(4,F.shape[2]//4)
 for i in range(0,F.shape[2]):
     f = F[:,:,i]

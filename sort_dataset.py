@@ -3,11 +3,8 @@ import os
 import shutil
 import xml.etree.ElementTree as et
 import numpy as np
-
 from lvisf2_processing import check_altimetry_track
 from lvisf2_processing import get_txtxml_time
-
-#################################################################################################################################
 
 # Imagery directory in original drive.
 HOME_DIR = r'D:\lvis images + altimetry\eo imagery\2022.07.11-2022.07.26'

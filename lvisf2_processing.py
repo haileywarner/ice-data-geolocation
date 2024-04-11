@@ -22,8 +22,6 @@ def get_polygon(txtxmlfile):
 
     return lon_list, lat_list
 
-
-
 def check_altimetry_track(txtxmlfile, img_points):
     '''
     check_altimetry_track : This function reads in each LVISF2 altimetry XML file, generates a polygon
@@ -51,20 +49,6 @@ def check_altimetry_track(txtxmlfile, img_points):
         print('LVISF2: '+str(path.contains_points(img_points).sum()))
         inside_arr = np.logical_or(inside_arr, path.contains_points(img_points, radius=0))
     return inside_arr
-'''
-    tree = et.parse(txtxmlfile)
-    root = tree.getroot()
-    p = root.iter('Point')
-    for i in range(sum(1 for _ in p)):
-        lon = float(root[2][8][0][0][0][i][0].text)
-        lat = float(root[2][8][0][0][0][i][1].text)
-        #print(lon,lat)
-        polygon_points.append((lon,lat))
-    #print(polygon_points)
-    path = pltpath.Path(polygon_points)
-    inside = path.contains_points(img_points)
-    return inside
-'''
 
 def get_txtxml_time(xmlfile):
     '''

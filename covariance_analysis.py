@@ -5,23 +5,6 @@ from matplotlib.patches import Ellipse
 import matplotlib.transforms as transforms
 # https://stats.stackexchange.com/questions/361017/proper-way-of-estimating-the-covariance-error-ellipse-in-2d
 
-def cov_ellipse2(points, cov, nstd):
-    """
-    Source: https://stackoverflow.com/a/39749274/1391441
-    """
-
-    vals, vecs = eigsorted(cov)
-    theta = np.degrees(np.arctan2(*vecs[::-1, 0]))
-
-    # Confidence level
-    q = 2 * norm.cdf(nstd) - 1
-    r2 = chi2.ppf(q, 2)
-
-    width, height = 2 * np.sqrt(vals * r2)
-
-    return width, height, theta
-
-
 def confidence_ellipse(x, y, ax, n_std=3.0, facecolor='none', **kwargs):
     """
     Create a plot of the covariance confidence ellipse of `x` and `y`
@@ -78,65 +61,24 @@ def confidence_ellipse(x, y, ax, n_std=3.0, facecolor='none', **kwargs):
     ellipse.set_transform(transf + ax.transData)
     return ax.add_patch(ellipse)
 
-
-
-glcmfile = r"C:\Users\Haile\OneDrive\Documents\EEE515\56133_to_56249\patches61\glcm_stats.csv"
-metafile = r"C:\Users\Haile\OneDrive\Documents\EEE515\56133_to_56249\metadata61.csv"
-altfile  = r"C:\Users\Haile\OneDrive\Documents\EEE515\56133_to_56249\LVISF2_IS_GL2022_0712_R2212_056133.txt"
+glcmfile = r"E:\spatially_sorted_lvisf2_is2olvis1bcv\all_patches\glcm_statistics.csv"
 
 glcm = pd.read_csv(glcmfile, header=0)
-meta = pd.read_csv(metafile, header=0)
-
-
-# xs = [list(glcm.dissimilarity), list(glcm.correlation), list(glcm.homogeneity), list(glcm.contrast), list(glcm.ASM), list(glcm.energy)]
-# fig, axs = plt.subplots(6, 1, figsize=(8, 4))
-# n=0
-# for x in xs:
-#     elevations = np.genfromtxt(altfile, dtype=float, usecols=(8)).tolist()
-#     indices = list(meta.row_in_altimetry_file)
-#     y = [elevations[i] for i in indices]
-#     axs[n].scatter(x, y, s=0.5)
-
-#     axs[n].axvline(c='grey', lw=1)
-#     axs[n].axhline(c='grey', lw=1)
-
-#     print 
-
-#     confidence_ellipse(np.array(x), np.array(y), axs[n], edgecolor='red')
-#     n+=1
-
-# plt.xlim([0, 0.1])
-# plt.ylim([20, 100])
-# plt.show()
 
 def plot_ellipses():
     xs = [list(glcm.dissimilarity), list(glcm.correlation), list(glcm.homogeneity), list(glcm.contrast), list(glcm.ASM), list(glcm.energy)]
     fig, axs = plt.subplots(1, 1, figsize=(4, 4))
     n=0
     x = list(glcm.energy)
-    elevations = np.genfromtxt(altfile, dtype=float, usecols=(8)).tolist()
-    indices = list(meta.row_in_altimetry_file)
-    y = [elevations[i] for i in indices]
+    y = list(glcm.z_maxamp)
     axs.scatter(x, y, s=0.5)
 
     axs.axvline(c='grey', lw=1)
     axs.axhline(c='grey', lw=1)
 
     confidence_ellipse(np.array(x), np.array(y), axs, edgecolor='red')
-    plt.xlim([0,0.15])
-    plt.ylim([29,31.5])
+    # plt.xlim([0.1,0.5])
+    # plt.ylim([-250,250])
     plt.show()
 
-def corr_coef():
-    corr = []
-    xs = [list(glcm.dissimilarity), list(glcm.correlation), list(glcm.homogeneity), list(glcm.contrast), list(glcm.ASM), list(glcm.energy)]
-    elevations = np.genfromtxt(altfile, dtype=float, usecols=(8)).tolist()
-    indices = list(meta.row_in_altimetry_file)
-    y = [elevations[i] for i in indices]
-
-    for x in xs:
-        corr.append(np.corrcoef(x,y)[1][0])
-    
-    print(corr)
-
-corr_coef()
+plot_ellipses()
